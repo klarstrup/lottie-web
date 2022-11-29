@@ -1,5 +1,3 @@
-function ShapeElementData() {
-
-}
+function ShapeElementData() {}
 
 export default ShapeElementData;

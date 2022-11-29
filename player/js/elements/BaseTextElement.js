@@ -1,4 +1,3 @@
-const BaseTextElement = function () {
-};
+const BaseTextElement = function () {};
 
 export default BaseTextElement;

@@ -1,32 +1,28 @@
-import { getLocationHref } from '../../main';
-import {
-  createElementID,
-} from '../../utils/common';
-import createNS from '../../utils/helpers/svg_elements';
-import MaskElement from '../../mask';
-import filtersFactory from '../../utils/filters';
-import featureSupport from '../../utils/featureSupport';
-import SVGEffects from './SVGEffects';
+import MaskElement from "../../mask";
+import { createElementID } from "../../utils/common";
+import { maskType } from "../../utils/featureSupport";
+import { createFilter } from "../../utils/filters";
+import createNS from "../../utils/helpers/svg_elements";
+import SVGEffects from "./SVGEffects";
 
-function SVGBaseElement() {
-}
+function SVGBaseElement() {}
 
 SVGBaseElement.prototype = {
-  initRendererElement: function () {
-    this.layerElement = createNS('g');
+  initRendererElement() {
+    this.layerElement = createNS("g");
   },
-  createContainerElements: function () {
-    this.matteElement = createNS('g');
+  createContainerElements() {
+    this.matteElement = createNS("g");
     this.transformedElement = this.layerElement;
     this.maskedElement = this.layerElement;
     this._sizeChanged = false;
-    var layerElementParent = null;
+    let layerElementParent = null;
     // If this layer acts as a mask for the following layer
     if (this.data.td) {
       this.matteMasks = {};
-      var symbolElement = createNS('symbol');
-      symbolElement.setAttribute('id', this.layerId);
-      var gg = createNS('g');
+      const symbolElement = createNS("symbol");
+      symbolElement.setAttribute("id", this.layerId);
+      const gg = createNS("g");
       gg.appendChild(this.layerElement);
       symbolElement.appendChild(gg);
       layerElementParent = gg;
@@ -39,24 +35,35 @@ SVGBaseElement.prototype = {
       this.baseElement = this.layerElement;
     }
     if (this.data.ln) {
-      this.layerElement.setAttribute('id', this.data.ln);
+      this.layerElement.setAttribute("id", this.data.ln);
     }
     if (this.data.cl) {
-      this.layerElement.setAttribute('class', this.data.cl);
+      this.layerElement.setAttribute("class", this.data.cl);
     }
     // Clipping compositions to hide content that exceeds boundaries. If collapsed transformations is on, component should not be clipped
     if (this.data.ty === 0 && !this.data.hd) {
-      var cp = createNS('clipPath');
-      var pt = createNS('path');
-      pt.setAttribute('d', 'M0,0 L' + this.data.w + ',0 L' + this.data.w + ',' + this.data.h + ' L0,' + this.data.h + 'z');
-      var clipId = createElementID();
-      cp.setAttribute('id', clipId);
+      const cp = createNS("clipPath");
+      const pt = createNS("path");
+      pt.setAttribute(
+        "d",
+        "M0,0 L" +
+          this.data.w +
+          ",0 L" +
+          this.data.w +
+          "," +
+          this.data.h +
+          " L0," +
+          this.data.h +
+          "z",
+      );
+      const clipId = createElementID();
+      cp.setAttribute("id", clipId);
       cp.appendChild(pt);
       this.globalData.defs.appendChild(cp);
 
       if (this.checkMasks()) {
-        var cpGroup = createNS('g');
-        cpGroup.setAttribute('clip-path', 'url(' + getLocationHref() + '#' + clipId + ')');
+        const cpGroup = createNS("g");
+        cpGroup.setAttribute("clip-path", "url(#" + clipId + ")");
         cpGroup.appendChild(this.layerElement);
         this.transformedElement = cpGroup;
         if (layerElementParent) {
@@ -65,96 +72,96 @@ SVGBaseElement.prototype = {
           this.baseElement = this.transformedElement;
         }
       } else {
-        this.layerElement.setAttribute('clip-path', 'url(' + getLocationHref() + '#' + clipId + ')');
+        this.layerElement.setAttribute("clip-path", "url(#" + clipId + ")");
       }
     }
     if (this.data.bm !== 0) {
       this.setBlendMode();
     }
   },
-  renderElement: function () {
+  renderElement() {
     if (this.finalTransform._matMdf) {
-      this.transformedElement.setAttribute('transform', this.finalTransform.mat.to2dCSS());
+      this.transformedElement.setAttribute("transform", this.finalTransform.mat.to2dCSS());
     }
     if (this.finalTransform._opMdf) {
-      this.transformedElement.setAttribute('opacity', this.finalTransform.mProp.o.v);
+      this.transformedElement.setAttribute("opacity", this.finalTransform.mProp.o.v);
     }
   },
-  destroyBaseElement: function () {
+  destroyBaseElement() {
     this.layerElement = null;
     this.matteElement = null;
     this.maskManager.destroy();
   },
-  getBaseElement: function () {
+  getBaseElement() {
     if (this.data.hd) {
       return null;
     }
     return this.baseElement;
   },
-  createRenderableComponents: function () {
+  createRenderableComponents() {
     this.maskManager = new MaskElement(this.data, this, this.globalData);
     this.renderableEffectsManager = new SVGEffects(this);
   },
-  getMatte: function (matteType) {
+  getMatte(matteType) {
     if (!this.matteMasks[matteType]) {
-      var id = this.layerId + '_' + matteType;
-      var filId;
-      var fil;
-      var useElement;
-      var gg;
+      const id = this.layerId + "_" + matteType;
+      let filId;
+      let fil;
+      let useElement;
+      let gg;
       if (matteType === 1 || matteType === 3) {
-        var masker = createNS('mask');
-        masker.setAttribute('id', id);
-        masker.setAttribute('mask-type', matteType === 3 ? 'luminance' : 'alpha');
-        useElement = createNS('use');
-        useElement.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + this.layerId);
+        const masker = createNS("mask");
+        masker.setAttribute("id", id);
+        masker.setAttribute("mask-type", matteType === 3 ? "luminance" : "alpha");
+        useElement = createNS("use");
+        useElement.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#" + this.layerId);
         masker.appendChild(useElement);
         this.globalData.defs.appendChild(masker);
-        if (!featureSupport.maskType && matteType === 1) {
-          masker.setAttribute('mask-type', 'luminance');
+        if (!maskType && matteType === 1) {
+          masker.setAttribute("mask-type", "luminance");
           filId = createElementID();
-          fil = filtersFactory.createFilter(filId);
+          fil = createFilter(filId);
           this.globalData.defs.appendChild(fil);
           fil.appendChild(filtersFactory.createAlphaToLuminanceFilter());
-          gg = createNS('g');
+          gg = createNS("g");
           gg.appendChild(useElement);
           masker.appendChild(gg);
-          gg.setAttribute('filter', 'url(' + getLocationHref() + '#' + filId + ')');
+          gg.setAttribute("filter", "url(#" + filId + ")");
         }
       } else if (matteType === 2) {
-        var maskGroup = createNS('mask');
-        maskGroup.setAttribute('id', id);
-        maskGroup.setAttribute('mask-type', 'alpha');
-        var maskGrouper = createNS('g');
+        const maskGroup = createNS("mask");
+        maskGroup.setAttribute("id", id);
+        maskGroup.setAttribute("mask-type", "alpha");
+        const maskGrouper = createNS("g");
         maskGroup.appendChild(maskGrouper);
         filId = createElementID();
-        fil = filtersFactory.createFilter(filId);
+        fil = createFilter(filId);
         /// /
-        var feCTr = createNS('feComponentTransfer');
-        feCTr.setAttribute('in', 'SourceGraphic');
+        const feCTr = createNS("feComponentTransfer");
+        feCTr.setAttribute("in", "SourceGraphic");
         fil.appendChild(feCTr);
-        var feFunc = createNS('feFuncA');
-        feFunc.setAttribute('type', 'table');
-        feFunc.setAttribute('tableValues', '1.0 0.0');
+        const feFunc = createNS("feFuncA");
+        feFunc.setAttribute("type", "table");
+        feFunc.setAttribute("tableValues", "1.0 0.0");
         feCTr.appendChild(feFunc);
         /// /
         this.globalData.defs.appendChild(fil);
-        var alphaRect = createNS('rect');
-        alphaRect.setAttribute('width', this.comp.data.w);
-        alphaRect.setAttribute('height', this.comp.data.h);
-        alphaRect.setAttribute('x', '0');
-        alphaRect.setAttribute('y', '0');
-        alphaRect.setAttribute('fill', '#ffffff');
-        alphaRect.setAttribute('opacity', '0');
-        maskGrouper.setAttribute('filter', 'url(' + getLocationHref() + '#' + filId + ')');
+        const alphaRect = createNS("rect");
+        alphaRect.setAttribute("width", this.comp.data.w);
+        alphaRect.setAttribute("height", this.comp.data.h);
+        alphaRect.setAttribute("x", "0");
+        alphaRect.setAttribute("y", "0");
+        alphaRect.setAttribute("fill", "#ffffff");
+        alphaRect.setAttribute("opacity", "0");
+        maskGrouper.setAttribute("filter", "url(#" + filId + ")");
         maskGrouper.appendChild(alphaRect);
-        useElement = createNS('use');
-        useElement.setAttributeNS('http://www.w3.org/1999/xlink', 'href', '#' + this.layerId);
+        useElement = createNS("use");
+        useElement.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#" + this.layerId);
         maskGrouper.appendChild(useElement);
-        if (!featureSupport.maskType) {
-          maskGroup.setAttribute('mask-type', 'luminance');
+        if (!maskType) {
+          maskGroup.setAttribute("mask-type", "luminance");
           fil.appendChild(filtersFactory.createAlphaToLuminanceFilter());
-          gg = createNS('g');
+          gg = createNS("g");
           maskGrouper.appendChild(alphaRect);
           gg.appendChild(this.layerElement);
           maskGrouper.appendChild(gg);
@@ -165,11 +172,11 @@ SVGBaseElement.prototype = {
     }
     return this.matteMasks[matteType];
   },
-  setMatte: function (id) {
+  setMatte(id) {
     if (!this.matteElement) {
       return;
     }
-    this.matteElement.setAttribute('mask', 'url(' + getLocationHref() + '#' + id + ')');
+    this.matteElement.setAttribute("mask", "url(#" + id + ")");
   },
 };
 

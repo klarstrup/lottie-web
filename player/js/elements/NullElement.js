@@ -1,10 +1,8 @@
-import {
-  extendPrototype,
-} from '../utils/functionExtensions';
-import BaseElement from './BaseElement';
-import TransformElement from './helpers/TransformElement';
-import HierarchyElement from './helpers/HierarchyElement';
-import FrameElement from './helpers/FrameElement';
+import { extendPrototype } from "../utils/functionExtensions";
+import BaseElement from "./BaseElement";
+import TransformElement from "./helpers/TransformElement";
+import HierarchyElement from "./helpers/HierarchyElement";
+import FrameElement from "./helpers/FrameElement";
 
 function NullElement(data, globalData, comp) {
   this.initFrame();
@@ -18,21 +16,17 @@ NullElement.prototype.prepareFrame = function (num) {
   this.prepareProperties(num, true);
 };
 
-NullElement.prototype.renderFrame = function () {
-};
+NullElement.prototype.renderFrame = function () {};
 
 NullElement.prototype.getBaseElement = function () {
   return null;
 };
 
-NullElement.prototype.destroy = function () {
-};
+NullElement.prototype.destroy = function () {};
 
-NullElement.prototype.sourceRectAtTime = function () {
-};
+NullElement.prototype.sourceRectAtTime = function () {};
 
-NullElement.prototype.hide = function () {
-};
+NullElement.prototype.hide = function () {};
 
 extendPrototype([BaseElement, TransformElement, HierarchyElement, FrameElement], NullElement);
 

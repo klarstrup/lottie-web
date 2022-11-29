@@ -1,28 +1,21 @@
 import {
-  extendPrototype,
-} from './utils/functionExtensions';
-import {
-  SliderEffect,
   AngleEffect,
+  CheckboxEffect,
   ColorEffect,
-  PointEffect,
   LayerIndexEffect,
   MaskIndexEffect,
-  CheckboxEffect,
   NoValueEffect,
-} from './effects/SliderEffect';
-import DynamicPropertyContainer from './utils/helpers/dynamicProperties';
+  PointEffect,
+  SliderEffect,
+} from "./effects/SliderEffect";
+import { extendPrototype } from "./utils/functionExtensions";
+import DynamicPropertyContainer from "./utils/helpers/dynamicProperties";
 
 function EffectsManager(data, element) {
-  var effects = data.ef || [];
+  const effects = data.ef || [];
   this.effectElements = [];
-  var i;
-  var len = effects.length;
-  var effectItem;
-  for (i = 0; i < len; i += 1) {
-    effectItem = new GroupEffect(effects[i], element);
-    this.effectElements.push(effectItem);
-  }
+
+  for (const effect of effects) this.effectElements.push(new GroupEffect(effect, element));
 }
 
 function GroupEffect(data, element) {
@@ -37,13 +30,12 @@ GroupEffect.prototype.init = function (data, element) {
   this.data = data;
   this.effectElements = [];
   this.initDynamicPropertyContainer(element);
-  var i;
-  var len = this.data.ef.length;
-  var eff;
-  var effects = this.data.ef;
-  for (i = 0; i < len; i += 1) {
+
+  let eff;
+  const effects = this.data.ef;
+  for (const effect of effects) {
     eff = null;
-    switch (effects[i].ty) {
+    switch (effect.ty) {
       case 0:
         eff = new SliderEffect(effects[i], element, this);
         break;
@@ -69,14 +61,12 @@ GroupEffect.prototype.init = function (data, element) {
       case 5:
         eff = new EffectsManager(effects[i], element, this);
         break;
-        // case 6:
+      // case 6:
       default:
         eff = new NoValueEffect(effects[i], element, this);
         break;
     }
-    if (eff) {
-      this.effectElements.push(eff);
-    }
+    if (eff) this.effectElements.push(eff);
   }
 };
 

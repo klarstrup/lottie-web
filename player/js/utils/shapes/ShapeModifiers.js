@@ -1,30 +1,16 @@
-import {
-  extendPrototype,
-} from '../functionExtensions';
-import DynamicPropertyContainer from '../helpers/dynamicProperties';
-import {
-  initialDefaultFrame,
-} from '../../main';
-import shapeCollectionPool from '../pooling/shapeCollection_pool';
+import { extendPrototype } from "../functionExtensions";
+import DynamicPropertyContainer from "../helpers/dynamicProperties";
+import { newShapeCollection } from "../pooling/shapeCollection_pool";
 
-const ShapeModifiers = (function () {
-  var ob = {};
-  var modifiers = {};
-  ob.registerModifier = registerModifier;
-  ob.getModifier = getModifier;
-
-  function registerModifier(nm, factory) {
-    if (!modifiers[nm]) {
-      modifiers[nm] = factory;
-    }
-  }
-
-  function getModifier(nm, elem, data) {
+const modifiers = {};
+const ShapeModifiers = {
+  registerModifier(nm, factory) {
+    if (!modifiers[nm]) modifiers[nm] = factory;
+  },
+  getModifier(nm, elem, data) {
     return new modifiers[nm](elem, data);
-  }
-
-  return ob;
-}());
+  },
+};
 
 function ShapeModifier() {}
 ShapeModifier.prototype.initModifierProperties = function () {};
@@ -33,12 +19,14 @@ ShapeModifier.prototype.addShape = function (data) {
   if (!this.closed) {
     // Adding shape to dynamic properties. It covers the case where a shape has no effects applied, to reset it's _mdf state on every tick.
     data.sh.container.addDynamicProperty(data.sh);
-    var shapeData = { shape: data.sh, data: data, localShapeCollection: shapeCollectionPool.newShapeCollection() };
+    const shapeData = {
+      shape: data.sh,
+      data,
+      localShapeCollection: newShapeCollection(),
+    };
     this.shapes.push(shapeData);
     this.addShapeToModifier(shapeData);
-    if (this._isAnimated) {
-      data.setAsAnimated();
-    }
+    if (this._isAnimated) data.setAsAnimated();
   }
 };
 ShapeModifier.prototype.init = function (elem, data) {
@@ -46,7 +34,7 @@ ShapeModifier.prototype.init = function (elem, data) {
   this.elem = elem;
   this.initDynamicPropertyContainer(elem);
   this.initModifierProperties(elem, data);
-  this.frameId = initialDefaultFrame;
+  this.frameId = -999999;
   this.closed = false;
   this.k = false;
   if (this.dynamicProperties.length) {
@@ -65,7 +53,4 @@ ShapeModifier.prototype.processKeys = function () {
 
 extendPrototype([DynamicPropertyContainer], ShapeModifier);
 
-export {
-  ShapeModifiers,
-  ShapeModifier,
-};
+export { ShapeModifiers, ShapeModifier };

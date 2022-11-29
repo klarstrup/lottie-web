@@ -1,8 +1,6 @@
-import DynamicPropertyContainer from '../../../utils/helpers/dynamicProperties';
+import DynamicPropertyContainer from "../../../utils/helpers/dynamicProperties";
 
-import {
-  extendPrototype,
-} from '../../../utils/functionExtensions';
+import { extendPrototype } from "../../../utils/functionExtensions";
 
 function SVGNoStyleData(elem, data, styleOb) {
   this.initDynamicPropertyContainer(elem);

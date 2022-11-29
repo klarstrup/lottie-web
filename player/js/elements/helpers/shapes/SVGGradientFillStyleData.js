@@ -1,19 +1,10 @@
-import {
-  degToRads,
-  createElementID,
-} from '../../../utils/common';
-import { getLocationHref } from '../../../main';
-import {
-  extendPrototype,
-} from '../../../utils/functionExtensions';
-import DynamicPropertyContainer from '../../../utils/helpers/dynamicProperties';
-import PropertyFactory from '../../../utils/PropertyFactory';
-import createNS from '../../../utils/helpers/svg_elements';
-import GradientProperty from '../../../utils/shapes/GradientProperty';
-import {
-  lineCapEnum,
-  lineJoinEnum,
-} from '../../../utils/helpers/shapeEnums';
+import { createElementID, degToRads } from "../../../utils/common";
+import { extendPrototype } from "../../../utils/functionExtensions";
+import DynamicPropertyContainer from "../../../utils/helpers/dynamicProperties";
+import { lineCapEnum, lineJoinEnum } from "../../../utils/helpers/shapeEnums";
+import createNS from "../../../utils/helpers/svg_elements";
+import { getProp } from "../../../utils/PropertyFactory";
+import GradientProperty from "../../../utils/shapes/GradientProperty";
 
 function SVGGradientFillStyleData(elem, data, styleOb) {
   this.initDynamicPropertyContainer(elem);
@@ -22,11 +13,11 @@ function SVGGradientFillStyleData(elem, data, styleOb) {
 }
 
 SVGGradientFillStyleData.prototype.initGradientData = function (elem, data, styleOb) {
-  this.o = PropertyFactory.getProp(elem, data.o, 0, 0.01, this);
-  this.s = PropertyFactory.getProp(elem, data.s, 1, null, this);
-  this.e = PropertyFactory.getProp(elem, data.e, 1, null, this);
-  this.h = PropertyFactory.getProp(elem, data.h || { k: 0 }, 0, 0.01, this);
-  this.a = PropertyFactory.getProp(elem, data.a || { k: 0 }, 0, degToRads, this);
+  this.o = getProp(elem, data.o, 0, 0.01, this);
+  this.s = getProp(elem, data.s, 1, null, this);
+  this.e = getProp(elem, data.e, 1, null, this);
+  this.h = getProp(elem, data.h || { k: 0 }, 0, 0.01, this);
+  this.a = getProp(elem, data.a || { k: 0 }, 0, degToRads, this);
   this.g = new GradientProperty(elem, data.g, this);
   this.style = styleOb;
   this.stops = [];
@@ -36,56 +27,50 @@ SVGGradientFillStyleData.prototype.initGradientData = function (elem, data, styl
 };
 
 SVGGradientFillStyleData.prototype.setGradientData = function (pathElement, data) {
-  var gradientId = createElementID();
-  var gfill = createNS(data.t === 1 ? 'linearGradient' : 'radialGradient');
-  gfill.setAttribute('id', gradientId);
-  gfill.setAttribute('spreadMethod', 'pad');
-  gfill.setAttribute('gradientUnits', 'userSpaceOnUse');
-  var stops = [];
-  var stop;
-  var j;
-  var jLen;
-  jLen = data.g.p * 4;
-  for (j = 0; j < jLen; j += 4) {
-    stop = createNS('stop');
+  const gradientId = createElementID();
+  const gfill = createNS(data.t === 1 ? "linearGradient" : "radialGradient");
+  gfill.setAttribute("id", gradientId);
+  gfill.setAttribute("spreadMethod", "pad");
+  gfill.setAttribute("gradientUnits", "userSpaceOnUse");
+  const stops = [];
+  for (let j = 0; j < data.g.p * 4; j += 4) {
+    const stop = createNS("stop");
     gfill.appendChild(stop);
     stops.push(stop);
   }
-  pathElement.setAttribute(data.ty === 'gf' ? 'fill' : 'stroke', 'url(' + getLocationHref() + '#' + gradientId + ')');
+  pathElement.setAttribute(data.ty === "gf" ? "fill" : "stroke", "url(#" + gradientId + ")");
   this.gf = gfill;
   this.cst = stops;
 };
 
 SVGGradientFillStyleData.prototype.setGradientOpacity = function (data, styleOb) {
   if (this.g._hasOpacity && !this.g._collapsable) {
-    var stop;
-    var j;
-    var jLen;
-    var mask = createNS('mask');
-    var maskElement = createNS('path');
+    const mask = createNS("mask");
+    const maskElement = createNS("path");
     mask.appendChild(maskElement);
-    var opacityId = createElementID();
-    var maskId = createElementID();
-    mask.setAttribute('id', maskId);
-    var opFill = createNS(data.t === 1 ? 'linearGradient' : 'radialGradient');
-    opFill.setAttribute('id', opacityId);
-    opFill.setAttribute('spreadMethod', 'pad');
-    opFill.setAttribute('gradientUnits', 'userSpaceOnUse');
-    jLen = data.g.k.k[0].s ? data.g.k.k[0].s.length : data.g.k.k.length;
-    var stops = this.stops;
-    for (j = data.g.p * 4; j < jLen; j += 2) {
-      stop = createNS('stop');
-      stop.setAttribute('stop-color', 'rgb(255,255,255)');
+    const opacityId = createElementID();
+    const maskId = createElementID();
+    mask.setAttribute("id", maskId);
+    const opFill = createNS(data.t === 1 ? "linearGradient" : "radialGradient");
+    opFill.setAttribute("id", opacityId);
+    opFill.setAttribute("spreadMethod", "pad");
+    opFill.setAttribute("gradientUnits", "userSpaceOnUse");
+    const stops = this.stops;
+    for (
+      let j = data.g.p * 4;
+      j < data.g.k.k[0].s ? data.g.k.k[0].s.length : data.g.k.k.length;
+      j += 2
+    ) {
+      const stop = createNS("stop");
+      stop.setAttribute("stop-color", "rgb(255,255,255)");
       opFill.appendChild(stop);
       stops.push(stop);
     }
-    maskElement.setAttribute(data.ty === 'gf' ? 'fill' : 'stroke', 'url(' + getLocationHref() + '#' + opacityId + ')');
-    if (data.ty === 'gs') {
-      maskElement.setAttribute('stroke-linecap', lineCapEnum[data.lc || 2]);
-      maskElement.setAttribute('stroke-linejoin', lineJoinEnum[data.lj || 2]);
-      if (data.lj === 1) {
-        maskElement.setAttribute('stroke-miterlimit', data.ml);
-      }
+    maskElement.setAttribute(data.ty === "gf" ? "fill" : "stroke", "url(#" + opacityId + ")");
+    if (data.ty === "gs") {
+      maskElement.setAttribute("stroke-linecap", lineCapEnum[data.lc || 2]);
+      maskElement.setAttribute("stroke-linejoin", lineJoinEnum[data.lj || 2]);
+      if (data.lj === 1) maskElement.setAttribute("stroke-miterlimit", data.ml);
     }
     this.of = opFill;
     this.ms = mask;

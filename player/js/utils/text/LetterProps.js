@@ -22,7 +22,7 @@ LetterProps.prototype.update = function (o, sw, sc, fc, m, p) {
   this._mdf.fc = false;
   this._mdf.m = false;
   this._mdf.p = false;
-  var updated = false;
+  let updated = false;
 
   if (this.o !== o) {
     this.o = o;
@@ -49,7 +49,15 @@ LetterProps.prototype.update = function (o, sw, sc, fc, m, p) {
     this._mdf.m = true;
     updated = true;
   }
-  if (p.length && (this.p[0] !== p[0] || this.p[1] !== p[1] || this.p[4] !== p[4] || this.p[5] !== p[5] || this.p[12] !== p[12] || this.p[13] !== p[13])) {
+  if (
+    p.length &&
+    (this.p[0] !== p[0] ||
+      this.p[1] !== p[1] ||
+      this.p[4] !== p[4] ||
+      this.p[5] !== p[5] ||
+      this.p[12] !== p[12] ||
+      this.p[13] !== p[13])
+  ) {
     this.p = p;
     this._mdf.p = true;
     updated = true;

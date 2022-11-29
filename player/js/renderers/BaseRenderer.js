@@ -1,17 +1,17 @@
-import FontManager from '../utils/FontManager';
-import FootageElement from '../elements/FootageElement';
-import AudioElement from '../elements/AudioElement';
+import FootageElement from "../elements/FootageElement";
+import FontManager from "../utils/FontManager";
 
 function BaseRenderer() {}
 BaseRenderer.prototype.checkLayers = function (num) {
-  var i;
-  var len = this.layers.length;
-  var data;
+  let data;
   this.completeLayers = true;
-  for (i = len - 1; i >= 0; i -= 1) {
+  for (let i = this.layers.length - 1; i >= 0; i -= 1) {
     if (!this.elements[i]) {
       data = this.layers[i];
-      if (data.ip - data.st <= (num - this.layers[i].st) && data.op - data.st > (num - this.layers[i].st)) {
+      if (
+        data.ip - data.st <= num - this.layers[i].st &&
+        data.op - data.st > num - this.layers[i].st
+      ) {
         this.buildItem(i);
       }
     }
@@ -34,8 +34,6 @@ BaseRenderer.prototype.createItem = function (layer) {
       return this.createShape(layer);
     case 5:
       return this.createText(layer);
-    case 6:
-      return this.createAudio(layer);
     case 13:
       return this.createCamera(layer);
     case 15:
@@ -46,11 +44,7 @@ BaseRenderer.prototype.createItem = function (layer) {
 };
 
 BaseRenderer.prototype.createCamera = function () {
-  throw new Error('You\'re using a 3d camera. Try the html renderer.');
-};
-
-BaseRenderer.prototype.createAudio = function (data) {
-  return new AudioElement(data, this.globalData, this);
+  throw new Error("You're using a 3d camera. Try the html renderer.");
 };
 
 BaseRenderer.prototype.createFootage = function (data) {
@@ -58,23 +52,17 @@ BaseRenderer.prototype.createFootage = function (data) {
 };
 
 BaseRenderer.prototype.buildAllItems = function () {
-  var i;
-  var len = this.layers.length;
-  for (i = 0; i < len; i += 1) {
-    this.buildItem(i);
-  }
+  for (let i = 0; i < this.layers.length; i += 1) this.buildItem(i);
+
   this.checkPendingElements();
 };
 
 BaseRenderer.prototype.includeLayers = function (newLayers) {
   this.completeLayers = false;
-  var i;
-  var len = newLayers.length;
-  var j;
-  var jLen = this.layers.length;
-  for (i = 0; i < len; i += 1) {
-    j = 0;
-    while (j < jLen) {
+
+  for (let i = 0; i < newLayers.length; i += 1) {
+    let j = 0;
+    while (j < this.layers.length) {
       if (this.layers[j].id === newLayers[i].id) {
         this.layers[j] = newLayers[i];
         break;
@@ -84,22 +72,17 @@ BaseRenderer.prototype.includeLayers = function (newLayers) {
   }
 };
 
-BaseRenderer.prototype.setProjectInterface = function (pInterface) {
-  this.globalData.projectInterface = pInterface;
-};
-
 BaseRenderer.prototype.initItems = function () {
-  if (!this.globalData.progressiveLoad) {
-    this.buildAllItems();
-  }
+  if (!this.globalData.progressiveLoad) this.buildAllItems();
 };
 BaseRenderer.prototype.buildElementParenting = function (element, parentName, hierarchy) {
-  var elements = this.elements;
-  var layers = this.layers;
-  var i = 0;
-  var len = layers.length;
+  const elements = this.elements;
+  const layers = this.layers;
+  let i = 0;
+  const len = layers.length;
   while (i < len) {
-    if (layers[i].ind == parentName) { // eslint-disable-line eqeqeq
+    if (layers[i].ind == parentName) {
+      // eslint-disable-line eqeqeq
       if (!elements[i] || elements[i] === true) {
         this.buildItem(i);
         this.addPendingElement(element);
@@ -122,35 +105,24 @@ BaseRenderer.prototype.addPendingElement = function (element) {
 };
 
 BaseRenderer.prototype.searchExtraCompositions = function (assets) {
-  var i;
-  var len = assets.length;
-  for (i = 0; i < len; i += 1) {
-    if (assets[i].xt) {
-      var comp = this.createComp(assets[i]);
-      comp.initExpressions();
-      this.globalData.projectInterface.registerComposition(comp);
-    }
-  }
+  for (const asset of assets) if (asset.xt) this.createComp(asset);
 };
 
 BaseRenderer.prototype.getElementByPath = function (path) {
-  var pathValue = path.shift();
-  var element;
-  if (typeof pathValue === 'number') {
+  const pathValue = path.shift();
+  let element;
+  if (typeof pathValue === "number") {
     element = this.elements[pathValue];
   } else {
-    var i;
-    var len = this.elements.length;
-    for (i = 0; i < len; i += 1) {
-      if (this.elements[i].data.nm === pathValue) {
-        element = this.elements[i];
+    for (const thisElement of this.elements) {
+      if (thisElement.data.nm === pathValue) {
+        element = thisElement;
         break;
       }
     }
   }
-  if (path.length === 0) {
-    return element;
-  }
+  if (path.length === 0) return element;
+
   return element.getElementByPath(path);
 };
 
@@ -161,14 +133,10 @@ BaseRenderer.prototype.setupGlobalData = function (animData, fontsContainer) {
   this.globalData.getAssetData = this.animationItem.getAssetData.bind(this.animationItem);
   this.globalData.getAssetsPath = this.animationItem.getAssetsPath.bind(this.animationItem);
   this.globalData.imageLoader = this.animationItem.imagePreloader;
-  this.globalData.audioController = this.animationItem.audioController;
   this.globalData.frameId = 0;
   this.globalData.frameRate = animData.fr;
   this.globalData.nm = animData.nm;
-  this.globalData.compSize = {
-    w: animData.w,
-    h: animData.h,
-  };
+  this.globalData.compSize = { w: animData.w, h: animData.h };
 };
 
 export default BaseRenderer;

@@ -1,13 +1,10 @@
-import {
-  initialDefaultFrame,
-} from '../../main';
-import getFontProperties from '../getFontProperties';
-import FontManager from '../FontManager';
+import FontManager from "../FontManager";
+import getFontProperties from "../getFontProperties";
 
 function TextProperty(elem, data) {
-  this._frameId = initialDefaultFrame;
-  this.pv = '';
-  this.v = '';
+  this._frameId = -999999;
+  this.pv = "";
+  this.v = "";
   this.kf = false;
   this._isFirstFrame = true;
   this._mdf = false;
@@ -21,19 +18,19 @@ function TextProperty(elem, data) {
   this.currentData = {
     ascent: 0,
     boxWidth: this.defaultBoxWidth,
-    f: '',
-    fStyle: '',
-    fWeight: '',
-    fc: '',
-    j: '',
-    justifyOffset: '',
+    f: "",
+    fStyle: "",
+    fWeight: "",
+    fc: "",
+    j: "",
+    justifyOffset: "",
     l: [],
     lh: 0,
     lineWidths: [],
-    ls: '',
-    of: '',
-    s: '',
-    sc: '',
+    ls: "",
+    of: "",
+    s: "",
+    sc: "",
     sw: 0,
     t: 0,
     tr: 0,
@@ -47,7 +44,6 @@ function TextProperty(elem, data) {
     finalText: [],
     finalLineHeight: 0,
     __complete: false,
-
   };
   this.copyData(this.currentData, this.data.d.k[0].s);
 
@@ -59,11 +55,8 @@ function TextProperty(elem, data) {
 TextProperty.prototype.defaultBoxWidth = [0, 0];
 
 TextProperty.prototype.copyData = function (obj, data) {
-  for (var s in data) {
-    if (Object.prototype.hasOwnProperty.call(data, s)) {
-      obj[s] = data[s];
-    }
-  }
+  for (const s in data) if (Object.prototype.hasOwnProperty.call(data, s)) obj[s] = data[s];
+
   return obj;
 };
 
@@ -94,27 +87,29 @@ TextProperty.prototype.addEffect = function (effectFunction) {
 };
 
 TextProperty.prototype.getValue = function (_finalValue) {
-  if ((this.elem.globalData.frameId === this.frameId || !this.effectsSequence.length) && !_finalValue) {
+  if (
+    (this.elem.globalData.frameId === this.frameId || !this.effectsSequence.length) &&
+    !_finalValue
+  ) {
     return;
   }
   this.currentData.t = this.data.d.k[this.keysIndex].s.t;
-  var currentValue = this.currentData;
-  var currentIndex = this.keysIndex;
+  const currentValue = this.currentData;
+  const currentIndex = this.keysIndex;
   if (this.lock) {
     this.setCurrentData(this.currentData);
     return;
   }
   this.lock = true;
   this._mdf = false;
-  var i; var
-    len = this.effectsSequence.length;
-  var finalValue = _finalValue || this.data.d.k[this.keysIndex].s;
-  for (i = 0; i < len; i += 1) {
+
+  let finalValue = _finalValue || this.data.d.k[this.keysIndex].s;
+  for (const sequence of this.effectsSequence) {
     // Checking if index changed to prevent creating a new object every time the expression updates.
     if (currentIndex !== this.keysIndex) {
-      finalValue = this.effectsSequence[i](finalValue, finalValue.t);
+      finalValue = sequence(finalValue, finalValue.t);
     } else {
-      finalValue = this.effectsSequence[i](this.currentData, finalValue.t);
+      finalValue = sequence(this.currentData, finalValue.t);
     }
   }
   if (currentValue !== finalValue) {
@@ -127,10 +122,10 @@ TextProperty.prototype.getValue = function (_finalValue) {
 };
 
 TextProperty.prototype.getKeyframeValue = function () {
-  var textKeys = this.data.d.k;
-  var frameNum = this.elem.comp.renderedFrame;
-  var i = 0; var
-    len = textKeys.length;
+  const textKeys = this.data.d.k;
+  const frameNum = this.elem.comp.renderedFrame;
+  let i = 0;
+  const len = textKeys.length;
   while (i <= len - 1) {
     if (i === len - 1 || textKeys[i + 1].t > frameNum) {
       break;
@@ -144,19 +139,19 @@ TextProperty.prototype.getKeyframeValue = function () {
 };
 
 TextProperty.prototype.buildFinalText = function (text) {
-  var charactersArray = [];
-  var i = 0;
-  var len = text.length;
-  var charCode;
-  var secondCharCode;
-  var shouldCombine = false;
+  const charactersArray = [];
+  let i = 0;
+  const len = text.length;
+  let charCode;
+  let secondCharCode;
+  let shouldCombine = false;
   while (i < len) {
     charCode = text.charCodeAt(i);
     if (FontManager.isCombinedCharacter(charCode)) {
       charactersArray[charactersArray.length - 1] += text.charAt(i);
-    } else if (charCode >= 0xD800 && charCode <= 0xDBFF) {
+    } else if (charCode >= 0xd800 && charCode <= 0xdbff) {
       secondCharCode = text.charCodeAt(i + 1);
-      if (secondCharCode >= 0xDC00 && secondCharCode <= 0xDFFF) {
+      if (secondCharCode >= 0xdc00 && secondCharCode <= 0xdfff) {
         if (shouldCombine || FontManager.isModifier(charCode, secondCharCode)) {
           charactersArray[charactersArray.length - 1] += text.substr(i, 2);
           shouldCombine = false;
@@ -167,7 +162,7 @@ TextProperty.prototype.buildFinalText = function (text) {
       } else {
         charactersArray.push(text.charAt(i));
       }
-    } else if (charCode > 0xDBFF) {
+    } else if (charCode > 0xdbff) {
       secondCharCode = text.charCodeAt(i + 1);
       if (FontManager.isZeroWidthJoiner(charCode, secondCharCode)) {
         shouldCombine = true;
@@ -189,50 +184,51 @@ TextProperty.prototype.buildFinalText = function (text) {
 
 TextProperty.prototype.completeTextData = function (documentData) {
   documentData.__complete = true;
-  var fontManager = this.elem.globalData.fontManager;
-  var data = this.data;
-  var letters = [];
-  var i; var
-    len;
-  var newLineFlag; var index = 0; var
-    val;
-  var anchorGrouping = data.m.g;
-  var currentSize = 0; var currentPos = 0; var currentLine = 0; var
-    lineWidths = [];
-  var lineWidth = 0;
-  var maxLineWidth = 0;
-  var j; var
-    jLen;
-  var fontData = fontManager.getFontByName(documentData.f);
-  var charData; var
-    cLength = 0;
+  const fontManager = this.elem.globalData.fontManager;
+  const data = this.data;
+  const letters = [];
+  let len;
+  let newLineFlag;
+  let index = 0;
+  let val;
+  const anchorGrouping = data.m.g;
+  let currentSize = 0;
+  let currentPos = 0;
+  let currentLine = 0;
+  const lineWidths = [];
+  let lineWidth = 0;
+  let maxLineWidth = 0;
+  let j;
+  const fontData = fontManager.getFontByName(documentData.f);
+  let charData;
+  let cLength = 0;
 
-  var fontProps = getFontProperties(fontData);
+  const fontProps = getFontProperties(fontData);
   documentData.fWeight = fontProps.weight;
   documentData.fStyle = fontProps.style;
   documentData.finalSize = documentData.s;
   documentData.finalText = this.buildFinalText(documentData.t);
   len = documentData.finalText.length;
   documentData.finalLineHeight = documentData.lh;
-  var trackingOffset = (documentData.tr / 1000) * documentData.finalSize;
-  var charCode;
+  let trackingOffset = (documentData.tr / 1000) * documentData.finalSize;
+  let charCode;
   if (documentData.sz) {
-    var flag = true;
-    var boxWidth = documentData.sz[0];
-    var boxHeight = documentData.sz[1];
-    var currentHeight; var
-      finalText;
+    let flag = true;
+    const boxWidth = documentData.sz[0];
+    const boxHeight = documentData.sz[1];
+    let currentHeight;
+    let finalText;
     while (flag) {
       finalText = this.buildFinalText(documentData.t);
       currentHeight = 0;
       lineWidth = 0;
       len = finalText.length;
       trackingOffset = (documentData.tr / 1000) * documentData.finalSize;
-      var lastSpaceIndex = -1;
-      for (i = 0; i < len; i += 1) {
+      let lastSpaceIndex = -1;
+      for (let i = 0; i < len; i += 1) {
         charCode = finalText[i].charCodeAt(0);
         newLineFlag = false;
-        if (finalText[i] === ' ') {
+        if (finalText[i] === " ") {
           lastSpaceIndex = i;
         } else if (charCode === 13 || charCode === 3) {
           lineWidth = 0;
@@ -246,14 +242,14 @@ TextProperty.prototype.completeTextData = function (documentData) {
           // tCanvasHelper.font = documentData.s + 'px '+ fontData.fFamily;
           cLength = fontManager.measureText(finalText[i], documentData.f, documentData.finalSize);
         }
-        if (lineWidth + cLength > boxWidth && finalText[i] !== ' ') {
+        if (lineWidth + cLength > boxWidth && finalText[i] !== " ") {
           if (lastSpaceIndex === -1) {
             len += 1;
           } else {
             i = lastSpaceIndex;
           }
           currentHeight += documentData.finalLineHeight || documentData.finalSize * 1.2;
-          finalText.splice(i, lastSpaceIndex === i ? 1 : 0, '\r');
+          finalText.splice(i, lastSpaceIndex === i ? 1 : 0, "\r");
           // finalText = finalText.substr(0,i) + "\r" + finalText.substr(i === lastSpaceIndex ? i + 1 : i);
           lastSpaceIndex = -1;
           lineWidth = 0;
@@ -263,7 +259,11 @@ TextProperty.prototype.completeTextData = function (documentData) {
         }
       }
       currentHeight += (fontData.ascent * documentData.finalSize) / 100;
-      if (this.canResize && documentData.finalSize > this.minimumFontSize && boxHeight < currentHeight) {
+      if (
+        this.canResize &&
+        documentData.finalSize > this.minimumFontSize &&
+        boxHeight < currentHeight
+      ) {
         documentData.finalSize -= 1;
         documentData.finalLineHeight = (documentData.finalSize * documentData.lh) / documentData.s;
       } else {
@@ -275,9 +275,9 @@ TextProperty.prototype.completeTextData = function (documentData) {
   }
   lineWidth = -trackingOffset;
   cLength = 0;
-  var uncollapsedSpaces = 0;
-  var currentChar;
-  for (i = 0; i < len; i += 1) {
+  let uncollapsedSpaces = 0;
+  let currentChar;
+  for (let i = 0; i < len; i += 1) {
     newLineFlag = false;
     currentChar = documentData.finalText[i];
     charCode = currentChar.charCodeAt(0);
@@ -286,14 +286,18 @@ TextProperty.prototype.completeTextData = function (documentData) {
       lineWidths.push(lineWidth);
       maxLineWidth = lineWidth > maxLineWidth ? lineWidth : maxLineWidth;
       lineWidth = -2 * trackingOffset;
-      val = '';
+      val = "";
       newLineFlag = true;
       currentLine += 1;
     } else {
       val = currentChar;
     }
     if (fontManager.chars) {
-      charData = fontManager.getCharData(currentChar, fontData.fStyle, fontManager.getFontByName(documentData.f).fFamily);
+      charData = fontManager.getCharData(
+        currentChar,
+        fontData.fStyle,
+        fontManager.getFontByName(documentData.f).fFamily,
+      );
       cLength = newLineFlag ? 0 : (charData.w * documentData.finalSize) / 100;
     } else {
       // var charWidth = fontManager.measureText(val, documentData.f, documentData.finalSize);
@@ -302,19 +306,27 @@ TextProperty.prototype.completeTextData = function (documentData) {
     }
 
     //
-    if (currentChar === ' ') {
+    if (currentChar === " ") {
       uncollapsedSpaces += cLength + trackingOffset;
     } else {
       lineWidth += cLength + trackingOffset + uncollapsedSpaces;
       uncollapsedSpaces = 0;
     }
     letters.push({
-      l: cLength, an: cLength, add: currentSize, n: newLineFlag, anIndexes: [], val: val, line: currentLine, animatorJustifyOffset: 0,
+      l: cLength,
+      an: cLength,
+      add: currentSize,
+      n: newLineFlag,
+      anIndexes: [],
+      val,
+      line: currentLine,
+      animatorJustifyOffset: 0,
     });
-    if (anchorGrouping == 2) { // eslint-disable-line eqeqeq
+    if (anchorGrouping == 2) {
+      // eslint-disable-line eqeqeq
       currentSize += cLength;
-      if (val === '' || val === ' ' || i === len - 1) {
-        if (val === '' || val === ' ') {
+      if (val === "" || val === " " || i === len - 1) {
+        if (val === "" || val === " ") {
           currentSize -= cLength;
         }
         while (currentPos <= i) {
@@ -326,10 +338,11 @@ TextProperty.prototype.completeTextData = function (documentData) {
         index += 1;
         currentSize = 0;
       }
-    } else if (anchorGrouping == 3) { // eslint-disable-line eqeqeq
+    } else if (anchorGrouping == 3) {
+      // eslint-disable-line eqeqeq
       currentSize += cLength;
-      if (val === '' || i === len - 1) {
-        if (val === '') {
+      if (val === "" || i === len - 1) {
+        if (val === "") {
           currentSize -= cLength;
         }
         while (currentPos <= i) {
@@ -368,41 +381,41 @@ TextProperty.prototype.completeTextData = function (documentData) {
   }
   documentData.lineWidths = lineWidths;
 
-  var animators = data.a; var animatorData; var
-    letterData;
-  jLen = animators.length;
-  var based; var ind; var
-    indexes = [];
-  for (j = 0; j < jLen; j += 1) {
-    animatorData = animators[j];
-    if (animatorData.a.sc) {
-      documentData.strokeColorAnim = true;
-    }
-    if (animatorData.a.sw) {
-      documentData.strokeWidthAnim = true;
-    }
+  const animators = data.a;
+  let based;
+  let ind;
+  const indexes = [];
+  for (const animatorData of animators) {
+    if (animatorData.a.sc) documentData.strokeColorAnim = true;
+
+    if (animatorData.a.sw) documentData.strokeWidthAnim = true;
+
     if (animatorData.a.fc || animatorData.a.fh || animatorData.a.fs || animatorData.a.fb) {
       documentData.fillColorAnim = true;
     }
     ind = 0;
     based = animatorData.s.b;
-    for (i = 0; i < len; i += 1) {
-      letterData = letters[i];
+    for (let i = 0; i < len; i += 1) {
+      const letterData = letters[i];
       letterData.anIndexes[j] = ind;
-      if ((based == 1 && letterData.val !== '') || (based == 2 && letterData.val !== '' && letterData.val !== ' ') || (based == 3 && (letterData.n || letterData.val == ' ' || i == len - 1)) || (based == 4 && (letterData.n || i == len - 1))) { // eslint-disable-line eqeqeq
-        if (animatorData.s.rn === 1) {
-          indexes.push(ind);
-        }
+      if (
+        (based == 1 && letterData.val !== "") ||
+        (based == 2 && letterData.val !== "" && letterData.val !== " ") ||
+        (based == 3 && (letterData.n || letterData.val == " " || i == len - 1)) ||
+        (based == 4 && (letterData.n || i == len - 1))
+      ) {
+        if (animatorData.s.rn === 1) indexes.push(ind);
+
         ind += 1;
       }
     }
     data.a[j].s.totalChars = ind;
-    var currentInd = -1; var
-      newInd;
+    let currentInd = -1;
+    let newInd;
     if (animatorData.s.rn === 1) {
-      for (i = 0; i < len; i += 1) {
-        letterData = letters[i];
-        if (currentInd != letterData.anIndexes[j]) { // eslint-disable-line eqeqeq
+      for (let i = 0; i < len; i += 1) {
+        const letterData = letters[i];
+        if (currentInd != letterData.anIndexes[j]) {
           currentInd = letterData.anIndexes[j];
           newInd = indexes.splice(Math.floor(Math.random() * indexes.length), 1)[0];
         }
@@ -417,7 +430,7 @@ TextProperty.prototype.completeTextData = function (documentData) {
 
 TextProperty.prototype.updateDocumentData = function (newData, index) {
   index = index === undefined ? this.keysIndex : index;
-  var dData = this.copyData({}, this.data.d.k[index].s);
+  let dData = this.copyData({}, this.data.d.k[index].s);
   dData = this.copyData(dData, newData);
   this.data.d.k[index].s = dData;
   this.recalculate(index);
@@ -425,7 +438,7 @@ TextProperty.prototype.updateDocumentData = function (newData, index) {
 };
 
 TextProperty.prototype.recalculate = function (index) {
-  var dData = this.data.d.k[index].s;
+  const dData = this.data.d.k[index].s;
   dData.__complete = false;
   this.keysIndex = 0;
   this._isFirstFrame = true;

@@ -1,40 +1,35 @@
-import {
-  extendPrototype,
-} from '../functionExtensions';
-import PropertyFactory from '../PropertyFactory';
-import shapePool from '../pooling/shape_pool';
-import {
-  ShapeModifier,
-} from './ShapeModifiers';
+import { extendPrototype } from "../functionExtensions";
+import shapePool from "../pooling/shape_pool";
+import { getProp } from "../PropertyFactory";
+import { ShapeModifier } from "./ShapeModifiers";
 
 function PuckerAndBloatModifier() {}
 extendPrototype([ShapeModifier], PuckerAndBloatModifier);
 PuckerAndBloatModifier.prototype.initModifierProperties = function (elem, data) {
   this.getValue = this.processKeys;
-  this.amount = PropertyFactory.getProp(elem, data.a, 0, null, this);
-  this._isAnimated = !!this.amount.effectsSequence.length;
+  this.amount = getProp(elem, data.a, 0, null, this);
+  this._isAnimated = Boolean(this.amount.effectsSequence.length);
 };
 
 PuckerAndBloatModifier.prototype.processPath = function (path, amount) {
-  var percent = amount / 100;
-  var centerPoint = [0, 0];
-  var pathLength = path._length;
-  var i = 0;
-  for (i = 0; i < pathLength; i += 1) {
+  const percent = amount / 100;
+  const centerPoint = [0, 0];
+  const pathLength = path._length;
+  for (let i = 0; i < pathLength; i += 1) {
     centerPoint[0] += path.v[i][0];
     centerPoint[1] += path.v[i][1];
   }
   centerPoint[0] /= pathLength;
   centerPoint[1] /= pathLength;
-  var clonedPath = shapePool.newElement();
+  const clonedPath = shapePool.newElement();
   clonedPath.c = path.c;
-  var vX;
-  var vY;
-  var oX;
-  var oY;
-  var iX;
-  var iY;
-  for (i = 0; i < pathLength; i += 1) {
+  let vX;
+  let vY;
+  let oX;
+  let oY;
+  let iX;
+  let iY;
+  for (let i = 0; i < pathLength; i += 1) {
     vX = path.v[i][0] + (centerPoint[0] - path.v[i][0]) * percent;
     vY = path.v[i][1] + (centerPoint[1] - path.v[i][1]) * percent;
     oX = path.o[i][0] + (centerPoint[0] - path.o[i][0]) * -percent;
@@ -47,34 +42,24 @@ PuckerAndBloatModifier.prototype.processPath = function (path, amount) {
 };
 
 PuckerAndBloatModifier.prototype.processShapes = function (_isFirstFrame) {
-  var shapePaths;
-  var i;
-  var len = this.shapes.length;
-  var j;
-  var jLen;
-  var amount = this.amount.v;
+  const amount = this.amount.v;
 
   if (amount !== 0) {
-    var shapeData;
-    var localShapeCollection;
-    for (i = 0; i < len; i += 1) {
-      shapeData = this.shapes[i];
-      localShapeCollection = shapeData.localShapeCollection;
+    for (const shapeData of this.shapes) {
+      const localShapeCollection = shapeData.localShapeCollection;
       if (!(!shapeData.shape._mdf && !this._mdf && !_isFirstFrame)) {
         localShapeCollection.releaseShapes();
         shapeData.shape._mdf = true;
-        shapePaths = shapeData.shape.paths.shapes;
-        jLen = shapeData.shape.paths._length;
-        for (j = 0; j < jLen; j += 1) {
+        const shapePaths = shapeData.shape.paths.shapes;
+        const jLen = shapeData.shape.paths._length;
+        for (let j = 0; j < jLen; j += 1) {
           localShapeCollection.addShape(this.processPath(shapePaths[j], amount));
         }
       }
       shapeData.shape.paths = shapeData.localShapeCollection;
     }
   }
-  if (!this.dynamicProperties.length) {
-    this._mdf = false;
-  }
+  if (!this.dynamicProperties.length) this._mdf = false;
 };
 
 export default PuckerAndBloatModifier;

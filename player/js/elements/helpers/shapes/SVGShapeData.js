@@ -2,7 +2,7 @@ function SVGShapeData(transformers, level, shape) {
   this.caches = [];
   this.styles = [];
   this.transformers = transformers;
-  this.lStr = '';
+  this.lStr = "";
   this.sh = shape;
   this.lvl = level;
   // TODO find if there are some cases where _isAnimated can be false.
@@ -10,8 +10,8 @@ function SVGShapeData(transformers, level, shape) {
   // One way of finding out is checking if all styles associated to this shape depend only of this shape
   this._isAnimated = !!shape.k;
   // TODO: commenting this for now since all shapes are animated
-  var i = 0;
-  var len = transformers.length;
+  let i = 0;
+  const len = transformers.length;
   while (i < len) {
     if (transformers[i].mProps.dynamicProperties.length) {
       this._isAnimated = true;

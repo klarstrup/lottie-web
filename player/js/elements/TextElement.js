@@ -1,10 +1,9 @@
-import LetterProps from '../utils/text/LetterProps';
-import TextProperty from '../utils/text/TextProperty';
-import TextAnimatorProperty from '../utils/text/TextAnimatorProperty';
-import buildShapeString from '../utils/shapes/shapePathBuilder';
+import buildShapeString from "../utils/shapes/shapePathBuilder";
+import LetterProps from "../utils/text/LetterProps";
+import TextAnimatorProperty from "../utils/text/TextAnimatorProperty";
+import TextProperty from "../utils/text/TextProperty";
 
-function ITextElement() {
-}
+function ITextElement() {}
 
 ITextElement.prototype.initElement = function (data, globalData, comp) {
   this.lettersChangedFlag = true;
@@ -35,13 +34,10 @@ ITextElement.prototype.prepareFrame = function (num) {
 };
 
 ITextElement.prototype.createPathShape = function (matrixHelper, shapes) {
-  var j;
-  var jLen = shapes.length;
-  var pathNodes;
-  var shapeStr = '';
-  for (j = 0; j < jLen; j += 1) {
-    if (shapes[j].ty === 'sh') {
-      pathNodes = shapes[j].ks.k;
+  let shapeStr = "";
+  for (const shape of shapes) {
+    if (shape.ty === "sh") {
+      const pathNodes = shape.ks.k;
       shapeStr += buildShapeString(pathNodes, pathNodes.i.length, true, matrixHelper);
     }
   }
@@ -60,17 +56,32 @@ ITextElement.prototype.setMinimumFontSize = function (_fontSize) {
   this.textProperty.setMinimumFontSize(_fontSize);
 };
 
-ITextElement.prototype.applyTextPropertiesToMatrix = function (documentData, matrixHelper, lineNumber, xPos, yPos) {
+ITextElement.prototype.applyTextPropertiesToMatrix = function (
+  documentData,
+  matrixHelper,
+  lineNumber,
+  xPos,
+  yPos,
+) {
   if (documentData.ps) {
     matrixHelper.translate(documentData.ps[0], documentData.ps[1] + documentData.ascent, 0);
   }
   matrixHelper.translate(0, -documentData.ls, 0);
   switch (documentData.j) {
     case 1:
-      matrixHelper.translate(documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[lineNumber]), 0, 0);
+      matrixHelper.translate(
+        documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[lineNumber]),
+        0,
+        0,
+      );
       break;
     case 2:
-      matrixHelper.translate(documentData.justifyOffset + (documentData.boxWidth - documentData.lineWidths[lineNumber]) / 2, 0, 0);
+      matrixHelper.translate(
+        documentData.justifyOffset +
+          (documentData.boxWidth - documentData.lineWidths[lineNumber]) / 2,
+        0,
+        0,
+      );
       break;
     default:
       break;
@@ -79,13 +90,19 @@ ITextElement.prototype.applyTextPropertiesToMatrix = function (documentData, mat
 };
 
 ITextElement.prototype.buildColor = function (colorData) {
-  return 'rgb(' + Math.round(colorData[0] * 255) + ',' + Math.round(colorData[1] * 255) + ',' + Math.round(colorData[2] * 255) + ')';
+  return (
+    "rgb(" +
+    Math.round(colorData[0] * 255) +
+    "," +
+    Math.round(colorData[1] * 255) +
+    "," +
+    Math.round(colorData[2] * 255) +
+    ")"
+  );
 };
 
 ITextElement.prototype.emptyProp = new LetterProps();
 
-ITextElement.prototype.destroy = function () {
-
-};
+ITextElement.prototype.destroy = function () {};
 
 export default ITextElement;
